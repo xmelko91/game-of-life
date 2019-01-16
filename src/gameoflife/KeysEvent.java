@@ -1,8 +1,10 @@
 package gameoflife;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Scanner;
 
-class KeysEvent extends Thread {
+class KeysEvent extends Thread implements KeyListener {
     private String state = "run";
 
 
@@ -10,22 +12,10 @@ class KeysEvent extends Thread {
     public void run(){
         Scanner sc = new Scanner(System.in);
         while (!state.equals("quit")){
-            String c = sc.nextLine();
-            if (c.equals("q")){
-                setst("quit");
-            }
-            else if (c.equals("")) {
-                setst(state.equals("pause")? "run" : "pause");
-            }
-            else if (c.equals("n")){
-                setst("new");
-                while (getst().equals("new")) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -38,4 +28,20 @@ class KeysEvent extends Thread {
     public void setst(String s){
         this.state = s;
     }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        setst(state.equals("pause")? "run" : "pause");
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
 }

@@ -2,14 +2,14 @@ package gameoflife;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.Scanner;
 
 class WorldLife extends Thread{
     private int alive;
+    private Pole world = new Pole();
+    private Menu menu = new Menu();
 
-
-    public void setAlive(int alive) {
-        this.alive = alive;
+    WorldLife(int i) throws InterruptedException {
+        this.alive = i;
     }
 
     @Override
@@ -21,10 +21,13 @@ class WorldLife extends Thread{
         }
     }
 
-    void getParams() throws IOException, InterruptedException {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter size of the universe: ");
-        int nb = sc.nextInt();
+    private void getParams() throws IOException, InterruptedException {
+        int nb = alive;
+        while (nb == 0){
+            nb = menu.getOP().getSizeField();
+            Thread.sleep(100);
+        }
+        menu.getOP().setSizeField(0);
         int seed = (int) Math.abs(Math.random() * 100);
         Random generator = new Random(seed);
         char[][] world = new char[nb][nb];
@@ -34,18 +37,25 @@ class WorldLife extends Thread{
                 world[i][k] = generator.nextBoolean()? 'O' : ' ';
             }
         }
-        generation(world);
+        this.world.setWorld(world);
+        this.world.setVisible(true);
+        generation(this.world.getWorld(), this.world, this.menu);
 
     }
 
 
 
-    private  void generation(char[][] world) throws InterruptedException, IOException {
+    private  void generation(char[][] world, Pole allWorld, Menu menu) throws InterruptedException, IOException {
         int ms = 700;
         char[][] buff = new char[world.length][world.length];
         KeysEvent key = new KeysEvent();
+        allWorld.addKeyListener(key);
         key.start();
+
         for (int i = 1; i > 0;){
+            if (menu.isVisible())
+                menu.setVisible(false);
+
             int live = 0;
             for (int y = 0; y < world.length; y++){
                 for (int x = 0; x < world[y].length; x++){
@@ -62,10 +72,24 @@ class WorldLife extends Thread{
                     world[z][k] = buff[z][k];
                 }
             }
-            setAlive(live);
-            outWorld(world, i, alive);
+            outWorld(allWorld);
+            allWorld.getSt().setAlive(live);
+            allWorld.getSt().setGeneration(i);
+            if (key.getst().equals("pause"))
+                if (!menu.isVisible()) menu.setVisible(true);
             while (key.getst().equals("pause") && !key.getst().equals("quit") && key.getState() != Thread.State.TERMINATED){
-                Thread.sleep(ms);
+
+                if (menu.getOP().getSizeField() > 0){
+                    key.setst("new");
+                }
+                if (!menu.isVisible()){
+                    key.setst("run");
+                }
+                Thread.sleep(ms/2);
+                if (menu.getOP().getSizeField() < 0){
+                    key.setst("quit");
+                    menu.setVisible(false);
+                }
             }
 
             if (key.getst().equals("quit")) {
@@ -78,9 +102,8 @@ class WorldLife extends Thread{
             if (key.getst().equals("new")){
                 key.setst("quit");
                 key.join();
-                clearConsole();
-                WorldLife newWorld = new WorldLife();
-                newWorld.start();
+                this.alive = menu.getOP().getSizeField();
+                this.getParams();
                 i = -1;
             }
 
@@ -119,36 +142,7 @@ class WorldLife extends Thread{
         return (neib == 3 || neib == 2) ? 1 : 0;
     }
 
-    private static void outWorld(char[][] world, int generation, int alive) throws IOException {
-        clearConsole();
-        System.out.printf("Generation %d\n", generation);
-        System.out.printf("Alive: %d\n", alive);
-        for (char[] c : world)
-            System.out.println(c);
-        System.out.println("\nPress ENTER for pause\nInput n and press ENTER to start new\nInput q and press ENTER to quit");
-    }
-
-    private static void clearConsole() throws IOException {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-
-        try
-        {
-            final String os = System.getProperty("os.name");
-
-            if (os.contains("Windows"))
-            {
-                Runtime.getRuntime().exec("cls");
-            }
-            else
-            {
-                Runtime.getRuntime().exec("clear");
-            }
-            Runtime.getRuntime().exec("clear");
-        }
-        catch (final Exception e)
-        {
-            //  Handle any exceptions.
-        }
+    private static void outWorld(Pole world) throws IOException {
+        world.getPP().repaint();
     }
 }
