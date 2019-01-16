@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Random;
 
 class WorldLife extends Thread{
+
     private int alive;
     private Pole world = new Pole();
     private Menu menu = new Menu();
@@ -25,6 +26,8 @@ class WorldLife extends Thread{
         int nb = alive;
         while (nb == 0){
             nb = menu.getOP().getSizeField();
+            if (nb < 0)
+                System.exit(1);
             Thread.sleep(100);
         }
         menu.getOP().setSizeField(0);
@@ -46,7 +49,7 @@ class WorldLife extends Thread{
 
 
     private  void generation(char[][] world, Pole allWorld, Menu menu) throws InterruptedException, IOException {
-        int ms = 700;
+        int ms = 1050 - allWorld.getSt().getSlider().getValue();
         char[][] buff = new char[world.length][world.length];
         KeysEvent key = new KeysEvent();
         allWorld.addKeyListener(key);
@@ -72,9 +75,10 @@ class WorldLife extends Thread{
                     world[z][k] = buff[z][k];
                 }
             }
-            outWorld(allWorld);
+            allWorld.setColor();
             allWorld.getSt().setAlive(live);
             allWorld.getSt().setGeneration(i);
+            outWorld(allWorld);
             if (key.getst().equals("pause"))
                 if (!menu.isVisible()) menu.setVisible(true);
             while (key.getst().equals("pause") && !key.getst().equals("quit") && key.getState() != Thread.State.TERMINATED){
@@ -107,9 +111,8 @@ class WorldLife extends Thread{
                 i = -1;
             }
 
-
-
             Thread.sleep(ms);
+            ms = 1050 - allWorld.getSt().getSlider().getValue();
             i++;
         }
         key.setst("quit");
